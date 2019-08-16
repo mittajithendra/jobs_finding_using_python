@@ -6,27 +6,30 @@ import email.message
 
 
 def sendEmail(content):
-    total_message='<h1>Svu Career Path</h1><p>These are new job openings.You can apply through below links</p>'
+    total_message="<body style='background-color: black;opacity:1;color:white'><h2>Svu Career Path</h2></a>"
     for hu in content:
         fd=hu.index('.')
         dup=hu[fd+1:]
-        fd2=dup.index('.')
+        try:
+            fd2=dup.index('.')
+        except:
+            fd2=-1
         name=hu[fd+1:fd+fd2+1]
-        total_message+='<a href="'+str(hu)+'">'+str(name)+'</a></br>'
+        total_message+='<p><a href="'+str(hu)+'">'+str(name)+'</a></p></br>'
+    total_message+='</body>'
+    msg = email.message.Message()
+    msg['Subject'] = 'Career Path'
+    msg['From'] = 'your mail'
+    msg.add_header('Content-Type','text/html')
+    s = smtplib.SMTP('smtp.gmail.com',587)
+    msg.set_payload(total_message)
+    s.starttls()
+    s.login('your mail','password')
     
-    to=['mailids']
-    for send_mail in to:
-        msg = email.message.Message()
-        msg['Subject'] = 'Career Path'
-        msg['From'] = '**************'
-        msg.add_header('Content-Type','text/html')
-        s = smtplib.SMTP('smtp.gmail.com',587)
-        msg.set_payload(total_message)
-        s.starttls()
-        s.login('***********','*************')
-        msg['To']=send_mail
-        s.sendmail(msg['From'], [msg['To']], msg.as_string())
-        s.quit()
+    recipients=[]
+    msg['To']=recipients
+    s.sendmail(msg['From'], recipients.split(','), msg.as_string())
+    s.quit()
 
     
 site_links=['https://www.offcampusjobs4u.com/','https://www.enggwave.com/']
@@ -68,9 +71,12 @@ f.close()
 
 if new_links:
     new_ids=[]
+    ol=r'C:\Users\mitta\Desktop\backup_links.txt'
+    fo=open(ol,'a')
     for j in new_links:
         if j==0:
             for i in new_links[j]:
+                fo.write(i+'\n')
                 r=requests.get(str(i))
                 soup=BeautifulSoup(r.text,'lxml')
                 tags=soup.find_all('a')
@@ -85,7 +91,8 @@ if new_links:
                 for t in tags:
                     if t.text=="Click Here":
                         new_ids.append(t.attrs['href'])
+    fo.close()
     if len(new_ids)>0:
+        new_ids=list(set(new_ids))
         sendEmail(new_ids)
-
 
